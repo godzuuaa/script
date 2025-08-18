@@ -1,7 +1,10 @@
 -- CONFIG
 local Config = {
-    AutoBuyEnabled = true, -- ✅ เปิด/ปิดระบบ AutoBuy
-    BuyInterval = 1,       -- วินาทีต่อรอบการซื้อ
+    AutoBuySeed = true,  -- ✅ เปิด/ปิดระบบ AutoBuy Seed
+    AutoBuyGear = true,  -- ✅ เปิด/ปิดระบบ AutoBuy Gear
+    AutoBuyEgg  = true,  -- ✅ เปิด/ปิดระบบ AutoBuy Egg
+    BuyInterval = 2,     -- วินาทีต่อรอบการซื้อ (แนะนำเพิ่มเป็น 2-3 วิ จะลื่นขึ้น)
+    ItemDelay   = 0.05,  -- ดีเลย์ระหว่างการซื้อแต่ละชิ้น เพื่อลดแลค
 }
 
 -- SERVICES
@@ -14,19 +17,39 @@ local player = Players.LocalPlayer
 -- REMOTES
 local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
 local BuySeedStock = GameEvents:WaitForChild("BuySeedStock")
+local BuyGearStock = GameEvents:WaitForChild("BuyGearStock")
+local BuyPetEgg = GameEvents:WaitForChild("BuyPetEgg")
 
--- REQUIRE SEED DATA (อยู่ใน Data.SeedData)
-local SeedData = require(ReplicatedStorage:WaitForChild("Data"):WaitForChild("SeedData"))
+-- REQUIRE DATA
+local SeedData   = require(ReplicatedStorage:WaitForChild("Data"):WaitForChild("SeedData"))
+local GearData   = require(ReplicatedStorage:WaitForChild("Data"):WaitForChild("GearData"))
+local PetEggData = require(ReplicatedStorage:WaitForChild("Data"):WaitForChild("PetEggData"))
 
--- AUTOBUY LOOP
+-- AUTOBUY LOOP (รวมทุกอย่างเป็น loop เดียว)
 task.spawn(function()
     while true do
-        if Config.AutoBuyEnabled then
+        if Config.AutoBuySeed then
             for seedName, _ in pairs(SeedData) do
-                -- fire โดยใช้ชื่อ seed
                 BuySeedStock:FireServer(seedName)
+                task.wait(Config.ItemDelay)
             end
         end
+
+        if Config.AutoBuyGear then
+            for gearName, _ in pairs(GearData) do
+                BuyGearStock:FireServer(gearName)
+                task.wait(Config.ItemDelay)
+            end
+        end
+
+        if Config.AutoBuyEgg then
+            for petEgg, _ in pairs(PetEggData) do
+                BuyPetEgg:FireServer(petEgg)
+                task.wait(Config.ItemDelay)
+            end
+        end
+
+        -- เว้นระยะรอบถัดไป
         task.wait(Config.BuyInterval)
     end
 end)
