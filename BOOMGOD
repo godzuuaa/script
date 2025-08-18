@@ -1,0 +1,35 @@
+-- CONFIG
+local Config = {
+    AutoBuyEnabled = true, -- ✅ เปิด/ปิดระบบ AutoBuy
+    BuyInterval = 1,       -- วินาทีต่อรอบการซื้อ
+}
+
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- PLAYER
+local player = Players.LocalPlayer
+
+-- REMOTES
+local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
+local BuySeedStock = GameEvents:WaitForChild("BuySeedStock")
+
+-- REQUIRE SEED DATA (อยู่ใน Data.SeedData)
+local SeedData = require(ReplicatedStorage:WaitForChild("Data"):WaitForChild("SeedData"))
+
+-- AUTOBUY LOOP
+task.spawn(function()
+    while true do
+        if Config.AutoBuyEnabled then
+            for seedName, _ in pairs(SeedData) do
+                -- fire โดยใช้ชื่อ seed
+                BuySeedStock:FireServer(seedName)
+            end
+        end
+        task.wait(Config.BuyInterval)
+    end
+end)
+
+-- OPTIONAL: save slot
+GameEvents:WaitForChild("SaveSlotService"):WaitForChild("RememberUnlockage"):FireServer()
